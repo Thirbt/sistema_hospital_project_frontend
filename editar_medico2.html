@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Editar Médico</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <h1>Editar Médico</h1>
+
+  <nav class="menu">
+    <a href="cadastrar_medico.html">Cadastrar</a>
+    <a href="listar_medico.html">Listar</a>
+    <a href="excluir_medico.html">Excluir</a>
+  </nav>
+
+  <div style="margin: 20px 0;">
+    <input
+      type="text"
+      id="nomeBusca"
+      placeholder="Digite o nome do médico a editar"
+      autocomplete="off"
+    />
+    <button onclick="buscarMedico()">Buscar</button>
+  </div>
+
+  <!-- Lista de resultados para escolher -->
+  <div id="listaResultados" class="doctor-list"></div>
+
+  <form id="formEdicao" style="display: none;">
+    <input type="hidden" id="idMedico" />
+
+    <label for="nome">Nome:</label>
+    <input type="text" id="nome" name="nome" required />
+
+    <label for="crm">CRM (letras e números, até 8 caracteres):</label>
+    <input
+      type="text"
+      id="crm"
+      name="crm"
+      required
+      maxlength="8"
+      pattern="[A-Za-z0-9]{1,8}"
+      title="Informe até 8 caracteres, letras e/ou números"
+    />
+
+    <label for="especialidade">Especialidade:</label>
+    <input type="text" id="especialidade" name="especialidade" required />
+
+    <button type="submit">Salvar Alterações</button>
+  </form>
+
+  <div style="margin-top: 30px;">
+    <a href="listar_medico.html">← Voltar para Listagem</a>
+  </div>
+
+  <script>
+    const API_BASE = 'https://system-hospital-project.onrender.com/medicos';
+    let medicos = [];
+
+    async function buscarMedico() {
+      const nomeBusca = document.getElementById('nomeBusca').value.trim().toLowerCase();
+      const form = document.getElementById('formEdicao');
+      const listaResultados = document.getElementById('listaResultados');
+
+      form.style.display = 'none';
+      listaResultados.innerHTML = '';
+
+      if (!nomeBusca) {
+        alert('Digite um nome para buscar.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/findAll`);
+        if (!res.ok) throw new Error('Erro ao buscar médicos');
+        medicos = await res.json();
+
+        const medicosEncontrados = medicos.filter(m =>
+          m.nome.toLowerCase().includes(nomeBusca)
+        );
+
+        if (medicosEncontrados.length === 0) {
+          alert('Nenhum médico encontrado.');
+          return;
+        }
+
+        if (medicosEncontrados.length === 1) {
+          preencherFormulario(medicosEncontrados[0]);
+        } else {
+          listaResultados.innerHTML = medicosEncontrados
+            .map(
+              medico =>
+                `<div class="doctor-item" onclick="selecionarMedico(${medico.id})" style="cursor:pointer;">
+                  <strong>${medico.nome}</strong> — ${medico.especialidade}
+                </div>`
+            )
+            .join('');
+        }
+      } catch (err) {
+        alert('Erro ao buscar médicos.');
+        console.error(err);
+      }
+    }
+
+    function preencherFormulario(medico) {
+      document.getElementById('idMedico').value = medico.id;
+      document.getElementById('nome').value = medico.nome;
+      document.getElementById('crm').value = medico.crm;
+      document.getElementById('especialidade').value = medico.especialidade;
+      document.getElementById('formEdicao').style.display = 'block';
+      document.getElementById('listaResultados').innerHTML = '';
+    }
+
+    function selecionarMedico(id) {
+      const medico = medicos.find(m => m.id === id);
+      if (medico) {
+        preencherFormulario(medico);
+      }
+    }
+
+    document.getElementById('formEdicao').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const id = document.getElementById('idMedico').value;
+      const nome = document.getElementById('nome').value;
+      const crm = document.getElementById('crm').value;
+      const especialidade = document.getElementById('especialidade').value;
+
+      const medicoAtualizado = { nome, crm, especialidade };
+
+      try {
+        const res = await fetch(`${API_BASE}/update/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(medicoAtualizado),
+        });
+
+        const resposta = await res.json();
+
+        if (res.ok) {
+          alert(resposta.message || 'Médico atualizado com sucesso!');
+          window.location.href = 'listar_medico.html';
+        } else {
+          alert(resposta.message || 'Erro ao atualizar médico.');
+        }
+      } catch (err) {
+        alert('Erro ao salvar alterações.');
+        console.error(err);
+      }
+    });
+  </script>
+
+</body>
+</html>

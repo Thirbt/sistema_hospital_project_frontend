@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Excluir Médico</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <h1>Excluir Médico</h1>
+
+  <nav class="menu">
+    <a href="cadastrar_medico.html">Cadastrar</a>
+    <a href="listar_medico.html">Listar</a>
+    <a href="editar_medico.html?id=1">Editar</a>
+  </nav>
+
+  <div>
+    <input type="text" id="buscarNome" placeholder="Buscar médico pelo nome" />
+    <button onclick="buscarPorNome()">Buscar</button>
+  </div>
+
+  <div id="listaMedicos" style="margin-top:20px;"></div>
+
+  <div style="margin-top: 30px;">
+    <a href="listar_medico.html">← Voltar para Listagem</a>
+  </div>
+
+<script>
+  const API_BASE = 'https://system-hospital-project.onrender.com/medicos';
+
+  
+  let medicosEncontrados = [];
+
+  async function buscarPorNome() {
+    const nomeBusca = document.getElementById('buscarNome').value.trim().toLowerCase();
+    const lista = document.getElementById('listaMedicos');
+    lista.innerHTML = 'Carregando...';
+
+    if (!nomeBusca) {
+      lista.innerHTML = '<p>Informe um nome para buscar.</p>';
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/findAll`);
+      const medicos = await res.json();
+
+      if (!res.ok) {
+        lista.innerHTML = `<p style="color:red;">Erro: ${medicos.message || 'Não foi possível buscar médicos.'}</p>`;
+        return;
+      }
+
+      
+      medicosEncontrados = medicos.filter(m => m.nome.toLowerCase().includes(nomeBusca));
+
+      if (medicosEncontrados.length === 0) {
+        lista.innerHTML = '<p>Nenhum médico encontrado com esse nome.</p>';
+        return;
+      }
+
+      
+      lista.innerHTML = '';
+      medicosEncontrados.forEach(medico => {
+        const div = document.createElement('div');
+        div.className = 'medico-item';
+        div.innerHTML = `
+          <strong>ID:</strong> ${medico.id} <br/>
+          <strong>Nome:</strong> ${medico.nome} <br/>
+          <strong>CRM:</strong> ${medico.crm} <br/>
+          <strong>Especialidade:</strong> ${medico.especialidade} <br/>
+          <button onclick="excluirMedico(${medico.id})" style="color:red; margin-top:5px;">Excluir</button>
+          <hr/>
+        `;
+        lista.appendChild(div);
+      });
+
+    } catch (err) {
+      lista.innerHTML = '<p style="color:red;">Erro ao buscar médicos.</p>';
+      console.error(err);
+    }
+  }
+
+  async function excluirMedico(id) {
+    if (!confirm('Confirma a exclusão deste médico?')) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/delete/${id}`, {
+        method: 'DELETE'
+      });
+
+      const resposta = await res.json();
+
+      if (res.ok) {
+        alert(resposta.message || 'Médico excluído com sucesso!');
+        medicosEncontrados = medicosEncontrados.filter(m => m.id !== id);
+        mostrarMedicos(medicosEncontrados);
+      } else {
+        alert(resposta.message || 'Erro ao excluir médico.');
+      }
+    } catch (err) {
+      alert('Erro ao excluir médico.');
+      console.error(err);
+    }
+  }
+
+  function mostrarMedicos(medicos) {
+    const lista = document.getElementById('listaMedicos');
+    if (medicos.length === 0) {
+      lista.innerHTML = '<p>Nenhum médico encontrado.</p>';
+      return;
+    }
+
+    lista.innerHTML = '';
+    medicos.forEach(medico => {
+      const div = document.createElement('div');
+      div.className = 'medico-item';
+      div.innerHTML = `
+        <strong>ID:</strong> ${medico.id} <br/>
+        <strong>Nome:</strong> ${medico.nome} <br/>
+        <strong>CRM:</strong> ${medico.crm} <br/>
+        <strong>Especialidade:</strong> ${medico.especialidade} <br/>
+        <button onclick="excluirMedico(${medico.id})" style="color:red; margin-top:5px;">Excluir</button>
+        <hr/>
+      `;
+      lista.appendChild(div);
+    });
+  }
+</script>
+
+</body>
+</html>

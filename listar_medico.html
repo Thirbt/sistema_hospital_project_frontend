@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Listar Médicos</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <h1>Listagem de Médicos</h1>
+
+  <nav class="menu">
+    <a href="cadastrar_medico.html">Cadastrar</a>
+    <a href="editar_medico.html?id=1">Editar</a>
+    <a href="excluir_medico.html?id=1">Excluir</a>
+  </nav>
+
+  <div>
+    <button onclick="carregarMedicos()">Recarregar Lista</button>
+  </div>
+
+  <div style="margin-top: 20px;">
+    <input type="number" id="buscarId" placeholder="Buscar médico por ID" />
+    <button onclick="buscarPorId()">Buscar</button>
+  </div>
+
+  <div id="mensagem" style="margin-top: 10px; font-weight: bold;"></div>
+
+  <h2>Todos os Médicos</h2>
+  <div id="listaMedicos"></div>
+
+  <script>
+    const API_LISTAR = 'https://system-hospital-project.onrender.com/medicos/findAll';
+    const API_BUSCAR_ID = 'https://system-hospital-project.onrender.com/medicos/findById';
+
+    async function carregarMedicos() {
+      const lista = document.getElementById('listaMedicos');
+      const msg = document.getElementById('mensagem');
+      msg.textContent = '';
+      lista.innerHTML = '<p>Carregando...</p>';
+
+      try {
+        const res = await fetch(API_LISTAR);
+        const medicos = await res.json();
+
+        if (!res.ok) {
+          lista.innerHTML = `<p>Erro: ${medicos.message}</p>`;
+          return;
+        }
+
+        if (medicos.length === 0) {
+          lista.innerHTML = '<p>Nenhum médico cadastrado.</p>';
+          return;
+        }
+
+        lista.innerHTML = '';
+        medicos.forEach(medico => {
+          const div = document.createElement('div');
+          div.className = 'medico-item';
+          div.innerHTML = `
+            <strong>ID:</strong> ${medico.id} <br/>
+            <strong>Nome:</strong> ${medico.nome} <br/>
+            <strong>CRM:</strong> ${medico.crm} <br/>
+            <strong>Especialidade:</strong> ${medico.especialidade} <br/>
+            <hr/>
+          `;
+          lista.appendChild(div);
+        });
+
+      } catch (err) {
+        lista.innerHTML = '<p>Erro ao buscar médicos.</p>';
+        console.error(err);
+      }
+    }
+
+    async function buscarPorId() {
+      const id = document.getElementById('buscarId').value.trim();
+      const lista = document.getElementById('listaMedicos');
+      const msg = document.getElementById('mensagem');
+
+      msg.textContent = '';
+      lista.innerHTML = '';
+
+      if (!id) {
+        msg.style.color = 'red';
+        msg.textContent = 'Informe um ID válido.';
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BUSCAR_ID}/${id}`);
+        const medico = await res.json();
+
+        if (!res.ok) {
+          msg.style.color = 'red';
+          msg.textContent = medico.message || 'Médico não encontrado.';
+          return;
+        }
+
+        const div = document.createElement('div');
+        div.className = 'medico-item';
+        div.innerHTML = `
+          <strong>ID:</strong> ${medico.id} <br/>
+          <strong>Nome:</strong> ${medico.nome} <br/>
+          <strong>CRM:</strong> ${medico.crm} <br/>
+          <strong>Especialidade:</strong> ${medico.especialidade} <br/>
+          <hr/>
+        `;
+        lista.appendChild(div);
+
+      } catch (err) {
+        msg.style.color = 'red';
+        msg.textContent = 'Erro ao buscar médico.';
+        console.error(err);
+      }
+    }
+
+    carregarMedicos();
+  </script>
+</body>
+</html>
