@@ -1,0 +1,178 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #CAF0F8;
+  margin: 0;
+  padding: 0;
+}
+
+.tal-con {
+  width: 80%;
+  margin: 30px auto;
+  border-collapse: collapse;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: #FFFFFF;
+  z-index: 2;
+}
+
+.tal-con th {
+  background-color: #0077B6;
+  color: #FFFFFF;
+  padding: 12px;
+  border: 1px solid #03045E;
+}
+
+.steregue{
+  margin: 0;
+  width: 2%;
+  float: right;
+  opacity: 0.2;
+}
+
+.tal-con td {
+  padding: 10px;
+  border: 1px solid #03045E;
+  background-color: #CAF0F8;
+  color: #03045E;
+  vertical-align: middle;
+}
+
+.tal-con tr:nth-child(even) td {
+  background-color: #90E0EF;
+}
+
+.tal-con button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.tal-con button img {
+  width: 20px;
+  height: 20px;
+}
+
+/* #region Início Modal de Detalhes */
+#modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(3, 4, 94, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+#modal.hidden {
+  display: none;
+}
+#modal .modal-content {
+  background: #FFFFFF;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 500px;
+  color: #03045E;
+}
+#modal .close {
+  float: right;
+  font-size: 20px;
+  cursor: pointer;
+  color: #03045E;
+}
+/* #endregion Fim Modal de Detalhes */
+
+/* #region Início Modal de Edição */
+#modalEditar {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(3, 4, 94, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+#modalEditar.hidden {
+  display: none;
+}
+#modalEditar .modal-content {
+  background: #FFFFFF;
+  padding: 20px;
+  border-radius: 10px;
+  width: 300px;
+  max-width: 90%;
+  color: #03045E;
+}
+#modalEditar .close {
+  float: right;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 20px;
+  color: #03045E;
+}
+/* #endregion Fim Modal de Edição */
+
+/* #region Início Modal Adicionar */
+#modalAdicionar {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(3, 4, 94, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+#modalAdicionar.hidden {
+  display: none;
+}
+
+#modalAdicionar .modal-content {
+  background: #FFFFFF;
+  padding: 20px;
+  border-radius: 10px;
+  width: 300px;
+  max-width: 90%;
+  color: #03045E;
+}
+
+#modalAdicionar .close {
+  float: right;
+  font-size: 20px;
+  cursor: pointer;
+  color: #03045E;
+}
+/* #endregion Fim Modal Adicionar */
+
+/* Botão Adicionar */
+.btnAdd {
+  background-color: #0077B6;
+  color: #FFFFFF;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: block;
+  margin: 20px auto;
+}
+
+.btnAdd:hover {
+  background-color: #00B4D8;
+}
+
+input, button {
+  border: 1px solid #0077B6;
+  padding: 6px;
+  border-radius: 4px;
+}
+
+button[type="submit"] {
+  background-color: #0077B6;
+  color: #FFFFFF;
+  cursor: pointer;
+}
+
+button[type="submit"]:hover {
+  background-color: #00B4D8;
+}
