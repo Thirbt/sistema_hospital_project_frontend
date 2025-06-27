@@ -1,5 +1,12 @@
 # 🏥 Sistema de Gerenciamento de Consultas - Projeto Hospital
 
+## 👨‍💻 Integrantes
+  #### Thiago Roberto Rocha
+  #### Adenilton Ribeiro
+  #### Júlia Martins
+  #### Jean Michel
+  #### Priscila Anselmo
+
 ## 📊 Visão Geral
 
 #### Este é um sistema web simples para gerenciamento de consultas hospitalares. Desenvolvido com HTML, CSS e JavaScript (Vanilla JS), conecta-se a uma API backend REST hospedada no Render.
