@@ -1,11 +1,11 @@
 # 🏥 Sistema de Gerenciamento de Consultas - Projeto Hospital
 
 ## 👨‍💻 Integrantes
-  #### Thiago Roberto Rocha
-  #### Adenilton Ribeiro
-  #### Júlia Martins
-  #### Jean Michel
-  #### Priscila Anselmo
+  #### Thiago Roberto Rocha  
+  #### Adenilton Ribeiro  
+  #### Júlia Martins  
+  #### Jean Michel  
+  #### Priscila Anselmo  
 
 ## 📊 Visão Geral
 
@@ -68,6 +68,38 @@
 #### Confirmação com confirm()
 
 #### Envio via: DELETE /consultas/delete/{id}
+
+### 6. Listar Médicos
+
+#### Requisição: GET /medicos/findAll
+
+#### Exibe uma lista de todos os médicos cadastrados, com informações como ID, nome, CRM e especialidade. Permite busca por nome.
+
+### 7. Cadastro de Médico
+
+#### Formulário para cadastrar um novo médico.
+
+#### Campos principais: nome, CRM, especialidade.
+
+#### Envio via: POST /medicos/create
+
+#### Validação dos campos realizada no frontend (exemplo: nome aceita letras, espaços, hífens, apóstrofos e pontos; CRM com até 8 caracteres alfanuméricos).
+
+### 8. Editar Médico
+
+#### Busca por nome para localizar o médico.
+
+#### Permite edição dos dados do médico selecionado.
+
+#### Envio via: PUT /medicos/update/{id}
+
+### 9. Excluir Médico
+
+#### Busca por nome para localizar o médico.
+
+#### Exclusão confirmada via modal de confirmação.
+
+#### Envio via: DELETE /medicos/delete/{id}
 
 ## 🎨 Estilo Visual (CSS)
 

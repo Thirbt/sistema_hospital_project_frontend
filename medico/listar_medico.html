@@ -2,71 +2,85 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Listar Médicos</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body class="listar-medico">
 
   <h1>Listagem de Médicos</h1>
 
   <nav class="menu">
+    <a href="index.html">Home</a>
     <a href="cadastrar_medico.html">Cadastrar</a>
-    <a href="editar_medico.html?id=1">Editar</a>
-    <a href="excluir_medico.html?id=1">Excluir</a>
+    <a href="editar_medico.html">Editar</a>
+    <a href="excluir_medico.html">Excluir</a>
   </nav>
 
-  <div>
+  <div id="mensagem" class="info-message" style="display: none;"></div>
+
+  <div style="text-align: center; margin-bottom: 20px;">
+    <input type="text" id="buscarNome" placeholder="Buscar médico por nome" autocomplete="off" />
+    <button onclick="buscarPorNome()">Buscar</button>
+  </div>
+
+  <h2>Todos os Médicos</h2>
+  <div id="listaMedicos" class="doctor-list"></div>
+
+  <div style="text-align: center; margin-top: 20px;">
     <button onclick="carregarMedicos()">Recarregar Lista</button>
   </div>
 
-  <div style="margin-top: 20px;">
-    <input type="number" id="buscarId" placeholder="Buscar médico por ID" />
-    <button onclick="buscarPorId()">Buscar</button>
-  </div>
-
-  <div id="mensagem" style="margin-top: 10px; font-weight: bold;"></div>
-
-  <h2>Todos os Médicos</h2>
-  <div id="listaMedicos"></div>
-
   <script>
     const API_LISTAR = 'https://system-hospital-project.onrender.com/medicos/findAll';
-    const API_BUSCAR_ID = 'https://system-hospital-project.onrender.com/medicos/findById';
+    let medicos = [];
+
+    // Função de validação do nome
+    function validarTextoSeguro(texto) {
+      const regex = /^[A-Za-zÀ-ú .'-]{1,50}$/;
+      if (!regex.test(texto)) return false;
+      if (/[<>&"\/]/.test(texto)) return false;
+      return true;
+    }
+
+    function exibirMensagem(texto, tipo = "info") {
+      const mensagem = document.getElementById("mensagem");
+      mensagem.textContent = texto;
+      mensagem.style.display = "block";
+
+      if (tipo === "error") {
+        mensagem.style.backgroundColor = "#f8d7da";
+        mensagem.style.color = "#842029";
+      } else if (tipo === "success") {
+        mensagem.style.backgroundColor = "#d4f8e8";
+        mensagem.style.color = "#007f5f";
+      } else {
+        mensagem.style.backgroundColor = "#caf0f8";
+        mensagem.style.color = "#03045e";
+      }
+
+      setTimeout(() => {
+        mensagem.style.display = "none";
+      }, 3000);
+    }
 
     async function carregarMedicos() {
       const lista = document.getElementById('listaMedicos');
       const msg = document.getElementById('mensagem');
-      msg.textContent = '';
+      msg.style.display = 'none';
       lista.innerHTML = '<p>Carregando...</p>';
 
       try {
         const res = await fetch(API_LISTAR);
-        const medicos = await res.json();
-
-        if (!res.ok) {
-          lista.innerHTML = `<p>Erro: ${medicos.message}</p>`;
-          return;
-        }
+        if (!res.ok) throw new Error('Erro ao carregar médicos');
+        medicos = await res.json();
 
         if (medicos.length === 0) {
           lista.innerHTML = '<p>Nenhum médico cadastrado.</p>';
           return;
         }
 
-        lista.innerHTML = '';
-        medicos.forEach(medico => {
-          const div = document.createElement('div');
-          div.className = 'medico-item';
-          div.innerHTML = `
-            <strong>ID:</strong> ${medico.id} <br/>
-            <strong>Nome:</strong> ${medico.nome} <br/>
-            <strong>CRM:</strong> ${medico.crm} <br/>
-            <strong>Especialidade:</strong> ${medico.especialidade} <br/>
-            <hr/>
-          `;
-          lista.appendChild(div);
-        });
+        mostrarMedicos(medicos);
 
       } catch (err) {
         lista.innerHTML = '<p>Erro ao buscar médicos.</p>';
@@ -74,49 +88,51 @@
       }
     }
 
-    async function buscarPorId() {
-      const id = document.getElementById('buscarId').value.trim();
+    function mostrarMedicos(listaMedicos) {
       const lista = document.getElementById('listaMedicos');
-      const msg = document.getElementById('mensagem');
-
-      msg.textContent = '';
       lista.innerHTML = '';
 
-      if (!id) {
-        msg.style.color = 'red';
-        msg.textContent = 'Informe um ID válido.';
-        return;
-      }
-
-      try {
-        const res = await fetch(`${API_BUSCAR_ID}/${id}`);
-        const medico = await res.json();
-
-        if (!res.ok) {
-          msg.style.color = 'red';
-          msg.textContent = medico.message || 'Médico não encontrado.';
-          return;
-        }
-
+      listaMedicos.forEach(medico => {
         const div = document.createElement('div');
         div.className = 'medico-item';
         div.innerHTML = `
-          <strong>ID:</strong> ${medico.id} <br/>
-          <strong>Nome:</strong> ${medico.nome} <br/>
-          <strong>CRM:</strong> ${medico.crm} <br/>
-          <strong>Especialidade:</strong> ${medico.especialidade} <br/>
+          <p><strong>id:</strong> ${medico.id}</p>
+          <p><strong>nome:</strong> ${medico.nome}</p>
+          <p><strong>crm:</strong> ${medico.crm}</p>
+          <p><strong>especialidade:</strong> ${medico.especialidade}</p>
           <hr/>
         `;
         lista.appendChild(div);
+      });
+    }
 
-      } catch (err) {
-        msg.style.color = 'red';
-        msg.textContent = 'Erro ao buscar médico.';
-        console.error(err);
+    function buscarPorNome() {
+      const termoInput = document.getElementById('buscarNome');
+      const termo = termoInput.value.trim();
+
+      if (!termo) {
+        exibirMensagem('Digite um nome para buscar.', 'error');
+        return;
       }
+
+      if (!validarTextoSeguro(termo)) {
+        exibirMensagem('Nome inválido. Use apenas letras, espaço, ponto, hífen e acentos.', 'error');
+        return;
+      }
+
+      const encontrados = medicos.filter(m => m.nome.toLowerCase().includes(termo.toLowerCase()));
+
+      if (encontrados.length === 0) {
+        exibirMensagem('Nenhum médico encontrado com esse nome.', 'error');
+        document.getElementById('listaMedicos').innerHTML = '';
+        return;
+      }
+
+      mostrarMedicos(encontrados);
     }
 
     carregarMedicos();
   </script>
+
 </body>
 </html>

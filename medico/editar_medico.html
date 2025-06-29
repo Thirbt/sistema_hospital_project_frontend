@@ -6,70 +6,95 @@
   <title>Editar Médico</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body class="editar-medico">
 
   <h1>Editar Médico</h1>
 
   <nav class="menu">
+    <a href="index.html">Home</a>
     <a href="cadastrar_medico.html">Cadastrar</a>
     <a href="listar_medico.html">Listar</a>
     <a href="excluir_medico.html">Excluir</a>
   </nav>
 
-  <div style="margin: 20px 0;">
-    <input
-      type="text"
-      id="nomeBusca"
-      placeholder="Digite o nome do médico a editar"
-      autocomplete="off"
-    />
+  <div class="search-section">
+    <input type="text" id="nomeBusca" placeholder="Digite o nome do médico a editar" autocomplete="off" />
     <button onclick="buscarMedico()">Buscar</button>
   </div>
 
-  <!-- Lista de resultados para escolher -->
-  <div id="listaResultados" class="doctor-list"></div>
+  <div id="listaResultados" class="lista-medicos hidden"></div>
 
-  <form id="formEdicao" style="display: none;">
+  <form id="formEditar" class="form-edit hidden">
     <input type="hidden" id="idMedico" />
 
     <label for="nome">Nome:</label>
-    <input type="text" id="nome" name="nome" required />
+    <input type="text" id="nome" name="nome" required maxlength="50" />
 
     <label for="crm">CRM (letras e números, até 8 caracteres):</label>
-    <input
-      type="text"
-      id="crm"
-      name="crm"
-      required
-      maxlength="8"
-      pattern="[A-Za-z0-9]{1,8}"
-      title="Informe até 8 caracteres, letras e/ou números"
-    />
+    <input type="text" id="crm" name="crm" required maxlength="8" title="Informe até 8 caracteres" />
 
     <label for="especialidade">Especialidade:</label>
-    <input type="text" id="especialidade" name="especialidade" required />
+    <input type="text" id="especialidade" name="especialidade" required maxlength="50" />
 
-    <button type="submit">Salvar Alterações</button>
+    <div class="form-buttons">
+      <button type="submit">Salvar Alterações</button>
+      <button type="button" class="btn-cancelar" onclick="cancelarEdicao()">Cancelar Edição</button>
+    </div>
   </form>
 
-  <div style="margin-top: 30px;">
-    <a href="listar_medico.html">← Voltar para Listagem</a>
-  </div>
+  <div id="msgSucesso" class="info-message"></div>
 
   <script>
     const API_BASE = 'https://system-hospital-project.onrender.com/medicos';
     let medicos = [];
 
+    function validarTextoSeguro(texto) {
+      const regex = /^[A-Za-zÀ-ú .'-]{1,50}$/;
+      if (!regex.test(texto)) return false;
+      if (/[<>&"\/]/.test(texto)) return false;
+      return true;
+    }
+
+    function mostrarMensagem(msg, tipo = 'info') {
+      const msgSucesso = document.getElementById('msgSucesso');
+      msgSucesso.textContent = msg;
+      msgSucesso.className = 'info-message';
+
+      if (tipo === 'success') {
+        msgSucesso.style.backgroundColor = '#d4f8e8';
+        msgSucesso.style.color = '#007f5f';
+      } else if (tipo === 'error') {
+        msgSucesso.style.backgroundColor = '#f8d7da';
+        msgSucesso.style.color = '#842029';
+      } else {
+        msgSucesso.style.backgroundColor = '#caf0f8';
+        msgSucesso.style.color = '#03045e';
+      }
+
+      msgSucesso.style.display = 'block';
+
+      setTimeout(() => {
+        msgSucesso.style.display = 'none';
+      }, 3000);
+    }
+
+    function limparMensagem() {
+      const msgSucesso = document.getElementById('msgSucesso');
+      msgSucesso.style.display = 'none';
+      msgSucesso.textContent = '';
+    }
+
     async function buscarMedico() {
       const nomeBusca = document.getElementById('nomeBusca').value.trim().toLowerCase();
-      const form = document.getElementById('formEdicao');
-      const listaResultados = document.getElementById('listaResultados');
+      const form = document.getElementById('formEditar');
+      const lista = document.getElementById('listaResultados');
 
-      form.style.display = 'none';
-      listaResultados.innerHTML = '';
+      form.classList.add('hidden');
+      lista.classList.add('hidden');
+      lista.innerHTML = '';
 
       if (!nomeBusca) {
-        alert('Digite um nome para buscar.');
+        mostrarMensagem('Digite um nome para buscar.', 'error');
         return;
       }
 
@@ -78,80 +103,93 @@
         if (!res.ok) throw new Error('Erro ao buscar médicos');
         medicos = await res.json();
 
-        const medicosEncontrados = medicos.filter(m =>
-          m.nome.toLowerCase().includes(nomeBusca)
-        );
+        const encontrados = medicos.filter(m => m.nome.toLowerCase().includes(nomeBusca));
 
-        if (medicosEncontrados.length === 0) {
-          alert('Nenhum médico encontrado.');
+        if (encontrados.length === 0) {
+          mostrarMensagem('Nenhum médico encontrado.', 'info');
           return;
         }
 
-        if (medicosEncontrados.length === 1) {
-          preencherFormulario(medicosEncontrados[0]);
+        if (encontrados.length === 1) {
+          preencherFormulario(encontrados[0]);
         } else {
-          listaResultados.innerHTML = medicosEncontrados
-            .map(
-              medico =>
-                `<div class="doctor-item" onclick="selecionarMedico(${medico.id})" style="cursor:pointer;">
-                  <strong>${medico.nome}</strong> — ${medico.especialidade}
-                </div>`
-            )
-            .join('');
+          lista.innerHTML = encontrados.map(m => `
+            <div class="medico-item" tabindex="0" onclick="selecionarMedico(${m.id})" style="cursor:pointer;">
+              <p><strong>Nome:</strong> ${m.nome}</p>
+              <p><strong>Especialidade:</strong> ${m.especialidade}</p>
+            </div>
+          `).join('');
+          lista.classList.remove('hidden');
         }
       } catch (err) {
-        alert('Erro ao buscar médicos.');
+        mostrarMensagem('Erro ao buscar médicos.', 'error');
         console.error(err);
       }
     }
 
-    function preencherFormulario(medico) {
-      document.getElementById('idMedico').value = medico.id;
-      document.getElementById('nome').value = medico.nome;
-      document.getElementById('crm').value = medico.crm;
-      document.getElementById('especialidade').value = medico.especialidade;
-      document.getElementById('formEdicao').style.display = 'block';
-      document.getElementById('listaResultados').innerHTML = '';
+    function preencherFormulario(m) {
+      document.getElementById('idMedico').value = m.id;
+      document.getElementById('nome').value = m.nome;
+      document.getElementById('crm').value = m.crm;
+      document.getElementById('especialidade').value = m.especialidade;
+      document.getElementById('formEditar').classList.remove('hidden');
+      document.getElementById('listaResultados').classList.add('hidden');
+      limparMensagem();
     }
 
     function selecionarMedico(id) {
-      const medico = medicos.find(m => m.id === id);
-      if (medico) {
-        preencherFormulario(medico);
-      }
+      const m = medicos.find(x => x.id === id);
+      if (m) preencherFormulario(m);
     }
 
-    document.getElementById('formEdicao').addEventListener('submit', async function (e) {
+    function cancelarEdicao() {
+      document.getElementById('formEditar').classList.add('hidden');
+      document.getElementById('listaResultados').classList.add('hidden');
+      limparMensagem();
+    }
+
+    document.getElementById('formEditar').addEventListener('submit', async e => {
       e.preventDefault();
 
       const id = document.getElementById('idMedico').value;
-      const nome = document.getElementById('nome').value;
-      const crm = document.getElementById('crm').value;
-      const especialidade = document.getElementById('especialidade').value;
+      const nome = document.getElementById('nome').value.trim();
+      const crm = document.getElementById('crm').value.trim();
+      const esp = document.getElementById('especialidade').value.trim();
 
-      const medicoAtualizado = { nome, crm, especialidade };
+      if (!validarTextoSeguro(nome)) {
+        mostrarMensagem('Nome inválido. Use apenas letras, pontos, espaços, hífen e apóstrofo.', 'error');
+        return;
+      }
+
+      if (!/^[A-Za-z0-9]{1,8}$/.test(crm)) {
+        mostrarMensagem('CRM deve conter até 8 caracteres, apenas letras e números.', 'error');
+        return;
+      }
+
+      if (!validarTextoSeguro(esp)) {
+        mostrarMensagem('Especialidade inválida. Use apenas letras, pontos, espaços, hífen e apóstrofo.', 'error');
+        return;
+      }
 
       try {
         const res = await fetch(`${API_BASE}/update/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(medicoAtualizado),
+          body: JSON.stringify({ nome, crm, especialidade: esp }),
         });
 
-        const resposta = await res.json();
+        const r = await res.json();
+        mostrarMensagem(r.message || 'Médico atualizado com sucesso!', res.ok ? 'success' : 'error');
 
         if (res.ok) {
-          alert(resposta.message || 'Médico atualizado com sucesso!');
-          window.location.href = 'listar_medico.html';
-        } else {
-          alert(resposta.message || 'Erro ao atualizar médico.');
+          document.getElementById('formEditar').reset();
+          document.getElementById('formEditar').classList.add('hidden');
         }
       } catch (err) {
-        alert('Erro ao salvar alterações.');
+        mostrarMensagem('Erro ao salvar alterações.', 'error');
         console.error(err);
       }
     });
   </script>
-
 </body>
 </html>

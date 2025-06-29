@@ -6,88 +6,171 @@
   <title>Cadastrar Médico</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-
-
+<body class="cadastrar-medico">
 
   <h1>Cadastrar Médico</h1>
 
-    <nav class="menu">
+  <nav class="menu">
+    <a href="index.html">Home</a>
     <a href="listar_medico.html">Listar</a>
     <a href="editar_medico.html?id=1">Editar</a>
     <a href="excluir_medico.html?id=1">Excluir</a>
   </nav>
 
-  <form id="formCadastro">
-    <label for="nome">Nome:</label><br/>
-    <input type="text" id="nome" name="nome" required /><br/><br/>
+  <!-- ... (mantém o mesmo <head> e navegação) ... -->
 
-    <label for="crm">CRM:</label><br/>
-    <input
-      type="text"
-      id="crm"
-      name="crm"
-      required
-      maxlength="8"
-      pattern="[A-Za-z0-9]{1,8}"
-      title="Informe até 8 caracteres, apenas letras e números"
-      inputmode="text"
-    /><br/><br/>
+<form id="formCadastro">
+  <label for="nome">Nome:</label><br/>
+  <input type="text" id="nome" name="nome" required maxlength="30" /><br/>
+  <div id="erroNome" class="info-message" style="display:none;"></div><br/>
 
-    <label for="especialidade">Especialidade:</label><br/>
-    <input type="text" id="especialidade" name="especialidade" required /><br/><br/>
+  <label for="crm">CRM:</label><br/>
+  <input
+    type="text"
+    id="crm"
+    name="crm"
+    required
+    maxlength="8"
+    title="Informe até 8 caracteres, apenas letras e números"
+    inputmode="text"
+  /><br/>
+  <div id="erroCrm" class="info-message" style="display:none;"></div><br/>
 
-    <button type="submit">Cadastrar Médico</button>
-  </form>
+  <label for="especialidade">Especialidade:</label><br/>
+  <input type="text" id="especialidade" name="especialidade" required maxlength="30" /><br/>
+  <div id="erroEspecialidade" class="info-message" style="display:none;"></div><br/>
 
-  <div id="mensagem"></div>
+  <button type="submit" class="btn-primary">Cadastrar Médico</button>
+</form>
 
-  <script>
-    const form = document.getElementById("formCadastro");
-    const mensagem = document.getElementById("mensagem");
-    const API_URL = "https://system-hospital-project.onrender.com/medicos/create";
+<div id="msgSucesso" class="info-message" style="display:none;"></div>
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
+<script>
+  const form = document.getElementById("formCadastro");
+  const API_URL = "https://system-hospital-project.onrender.com/medicos/create";
 
-      const nome = document.getElementById("nome").value.trim();
-      const crm = document.getElementById("crm").value.trim();
-      const especialidade = document.getElementById("especialidade").value.trim();
+  function validarTextoSeguro(texto) {
+    const regex = /^[A-Za-zÀ-ú .'-]{1,30}$/;
+    if (!regex.test(texto)) return false;
+    if (/[<>&"\/]/.test(texto)) return false;
+    return true;
+  }
 
-      if (!/^[A-Za-z0-9]{1,8}$/.test(crm)) {
-        mensagem.style.color = "red";
-        mensagem.textContent = "CRM deve conter até 8 caracteres, apenas letras e números.";
-        return;
+  function mostrarErro(id, mensagem) {
+    const el = document.getElementById(id);
+    el.textContent = mensagem;
+    el.style.backgroundColor = "#f8d7da";
+    el.style.color = "#842029";
+    el.style.display = "block";
+  }
+
+  function esconderErro(id) {
+    const el = document.getElementById(id);
+    el.style.display = "none";
+  }
+
+  document.getElementById("nome").addEventListener("blur", () => {
+    const val = document.getElementById("nome").value.trim();
+    if (!validarTextoSeguro(val)) {
+      mostrarErro("erroNome", "Nome inválido. Use até 30 letras, pontos, espaços, hífen ou apóstrofo.");
+    } else {
+      esconderErro("erroNome");
+    }
+  });
+
+  document.getElementById("crm").addEventListener("blur", () => {
+    const val = document.getElementById("crm").value.trim();
+    if (!/^[A-Za-z0-9]{1,8}$/.test(val)) {
+      mostrarErro("erroCrm", "CRM deve conter até 8 caracteres, apenas letras e números.");
+    } else {
+      esconderErro("erroCrm");
+    }
+  });
+
+  document.getElementById("especialidade").addEventListener("blur", () => {
+    const val = document.getElementById("especialidade").value.trim();
+    if (!validarTextoSeguro(val)) {
+      mostrarErro("erroEspecialidade", "Especialidade inválida. Use até 30 letras, pontos, espaços, hífen ou apóstrofo.");
+    } else {
+      esconderErro("erroEspecialidade");
+    }
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const nomeRaw = document.getElementById("nome").value.trim();
+    const crmRaw = document.getElementById("crm").value.trim();
+    const especialidadeRaw = document.getElementById("especialidade").value.trim();
+
+    let valido = true;
+
+    if (!validarTextoSeguro(nomeRaw)) {
+      mostrarErro("erroNome", "Nome inválido. Use até 30 letras, pontos, espaços, hífen ou apóstrofo.");
+      valido = false;
+    }
+
+    if (!/^[A-Za-z0-9]{1,8}$/.test(crmRaw)) {
+      mostrarErro("erroCrm", "CRM deve conter até 8 caracteres, apenas letras e números.");
+      valido = false;
+    }
+
+    if (!validarTextoSeguro(especialidadeRaw)) {
+      mostrarErro("erroEspecialidade", "Especialidade inválida. Use até 30 letras, pontos, espaços, hífen ou apóstrofo.");
+      valido = false;
+    }
+
+    if (!valido) return;
+
+    const medico = { nome: nomeRaw, crm: crmRaw, especialidade: especialidadeRaw };
+
+    mostrarMensagem("Enviando...", "info");
+
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(medico),
+      });
+
+      const data = await res.json();
+
+      if (res.status === 201) {
+        mostrarMensagem(data.message || "Médico cadastrado com sucesso!", "success");
+        form.reset();
+      } else {
+        mostrarMensagem(data.message || "Erro ao cadastrar médico.", "error");
       }
+    } catch (error) {
+      mostrarMensagem("Erro de conexão com o servidor.", "error");
+      console.error(error);
+    }
+  });
 
-      const medico = { nome, crm, especialidade };
+  function mostrarMensagem(msg, tipo = "info") {
+    const msgSucesso = document.getElementById("msgSucesso");
+    msgSucesso.textContent = msg;
+    msgSucesso.className = "info-message";
 
-      mensagem.style.color = "black";
-      mensagem.textContent = "Enviando...";
+    if (tipo === "success") {
+      msgSucesso.style.backgroundColor = "#d4f8e8"; 
+      msgSucesso.style.color = "#007f5f";
+    } else if (tipo === "error") {
+      msgSucesso.style.backgroundColor = "#f8d7da"; 
+      msgSucesso.style.color = "#842029";
+    } else {
+      msgSucesso.style.backgroundColor = "#caf0f8"; 
+      msgSucesso.style.color = "#03045e";
+    }
 
-      try {
-        const res = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(medico),
-        });
+    msgSucesso.style.display = "block";
 
-        const data = await res.json();
+    setTimeout(() => {
+      msgSucesso.style.display = "none";
+    }, 3000);
+  }
+</script>
 
-        if (res.status === 201) {
-          mensagem.style.color = "green";
-          mensagem.textContent = data.message || "Médico cadastrado com sucesso!";
-          form.reset();
-        } else {
-          mensagem.style.color = "red";
-          mensagem.textContent = data.message || "Erro ao cadastrar médico.";
-        }
-      } catch (error) {
-        mensagem.style.color = "red";
-        mensagem.textContent = "Erro de conexão com o servidor.";
-        console.error(error);
-      }
-    });
-  </script>
+
 </body>
 </html>
