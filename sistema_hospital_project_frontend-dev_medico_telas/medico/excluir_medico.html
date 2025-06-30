@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Excluir Médico</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="excluir-medico">
+
+  <h1>Excluir Médico</h1>
+
+  <nav class="menu">
+    <a href="../index.html" class="active">Home</a>
+    <a href="cadastrar_medico.html">Cadastrar</a>
+    <a href="listar_medico.html">Listar</a>
+    <a href="editar_medico.html?id=1">Editar</a>
+  </nav>
+
+  <div class="buscar-container">
+    <input type="text" id="buscarNome" placeholder="Buscar médico pelo nome" />
+    <button onclick="buscarPorNome()" class="btn buscar-btn">Buscar</button>
+  </div>
+
+  <div id="listaMedicos" class="cards-container"></div>
+
+  <div id="modalConfirm" class="modal-overlay">
+    <div class="modal-content">
+      <p>Confirma a exclusão deste médico?</p>
+      <div class="modal-buttons">
+        <button id="btnConfirm" class="btn-confirm">Confirmar</button>
+        <button id="btnCancel" class="btn-cancel">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="msgSucesso" class="info-message" style="display:none;"></div>
+
+<script>
+  const API_BASE = 'https://system-hospital-project.onrender.com/medicos';
+  let medicosEncontrados = [];
+  let medicoParaExcluir = null;
+
+  // Validação de texto seguro (nome)
+  function validarTextoSeguro(texto) {
+    const regex = /^[A-Za-zÀ-ú .'-]{1,50}$/;
+    if (!regex.test(texto)) return false;
+    if (/[<>&"\/]/.test(texto)) return false;
+    return true;
+  }
+
+  function mostrarMensagem(msg, tipo = 'info') {
+    const msgSucesso = document.getElementById('msgSucesso');
+    msgSucesso.textContent = msg;
+    msgSucesso.className = 'info-message';
+
+    if (tipo === 'success') {
+      msgSucesso.style.backgroundColor = '#d4f8e8'; 
+      msgSucesso.style.color = '#007f5f';
+    } else if (tipo === 'error') {
+      msgSucesso.style.backgroundColor = '#f8d7da'; 
+      msgSucesso.style.color = '#842029';
+    } else {
+      msgSucesso.style.backgroundColor = '#caf0f8'; 
+      msgSucesso.style.color = '#03045e';
+    }
+
+    msgSucesso.style.display = 'block';
+    setTimeout(() => {
+      msgSucesso.style.display = 'none';
+    }, 3000);
+  }
+
+  async function buscarPorNome() {
+    const nomeBusca = document.getElementById('buscarNome').value.trim();
+    const lista = document.getElementById('listaMedicos');
+    lista.innerHTML = '';
+
+    if (!validarTextoSeguro(nomeBusca)) {
+      mostrarMensagem('Nome inválido. Use apenas letras, espaço, ponto, hífen e acentos.', 'error');
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/findAll`);
+      const medicos = await res.json();
+
+      if (!res.ok) {
+        mostrarMensagem(medicos.message || 'Erro ao buscar médicos.', 'error');
+        return;
+      }
+
+      medicosEncontrados = medicos.filter(m => m.nome.toLowerCase().includes(nomeBusca.toLowerCase()));
+
+      if (medicosEncontrados.length === 0) {
+        mostrarMensagem('Nenhum médico encontrado com esse nome.', 'info');
+        return;
+      }
+
+      mostrarMedicos(medicosEncontrados);
+
+    } catch (err) {
+      mostrarMensagem('Erro ao buscar médicos.', 'error');
+      console.error(err);
+    }
+  }
+
+  function mostrarMedicos(medicos) {
+    const lista = document.getElementById('listaMedicos');
+    lista.innerHTML = '';
+
+    medicos.forEach(medico => {
+      const div = document.createElement('div');
+      div.className = 'medico-item';
+
+      div.innerHTML = `
+        <p><strong>ID:</strong> ${medico.id}</p>
+        <p><strong>Nome:</strong> ${medico.nome}</p>
+        <p><strong>CRM:</strong> ${medico.crm}</p>
+        <p><strong>Especialidade:</strong> ${medico.especialidade}</p>
+        <button onclick="abrirModalExcluir(${medico.id})" class="btn btn-excluir">Excluir</button>
+      `;
+      lista.appendChild(div);
+    });
+  }
+
+  function abrirModalExcluir(id) {
+    medicoParaExcluir = id;
+    document.getElementById('modalConfirm').style.display = 'flex';
+  }
+
+  document.getElementById('btnCancel').addEventListener('click', () => {
+    document.getElementById('modalConfirm').style.display = 'none';
+    medicoParaExcluir = null;
+  });
+
+  document.getElementById('btnConfirm').addEventListener('click', async () => {
+    if (!medicoParaExcluir) return;
+
+    try {
+      const res = await fetch(`${API_BASE}/delete/${medicoParaExcluir}`, { method: 'DELETE' });
+      const resposta = await res.json();
+
+      if (res.ok) {
+        medicosEncontrados = medicosEncontrados.filter(m => m.id !== medicoParaExcluir);
+        mostrarMedicos(medicosEncontrados);
+        mostrarMensagem('Médico excluído com sucesso!', 'success');
+      } else {
+        mostrarMensagem(resposta.message || 'Erro ao excluir médico.', 'error');
+      }
+    } catch (err) {
+      mostrarMensagem('Erro ao excluir médico.', 'error');
+      console.error(err);
+    }
+
+    document.getElementById('modalConfirm').style.display = 'none';
+    medicoParaExcluir = null;
+  });
+</script>
+
+</body>
+</html>

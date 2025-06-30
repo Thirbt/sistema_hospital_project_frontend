@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Lista de Consultas</title>
+
+    <link rel="stylesheet" href="./css/design.css" />
+</head>
+
+<body>
+    <nav class="menu-principal-azul">
+    <a href="../index.html">Home</a>
+    <a href="../medico/listar_medico.html">Médicos</a>
+    <a href="consulta.html">Agendar Consulta</a>
+    <a href="../pacientes/pacientes.html">Pacientes</a>
+</nav>
+    <table class="tal-con">
+        <tr>
+            <th>Paciente</th>
+            <th>Especialidade</th>
+            <th>Data</th>
+            <th>Ações</th>
+        </tr>
+    </table>
+
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModal()">&times;</span>
+            <h3>Detalhes da Consulta</h3>
+            <p id="detalhesTexto"></p>
+        </div>
+    </div>
+
+    <div id="modalEditar" class="modal hidden">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModalEditar()">&times;</span>
+            <h3>Editar Consulta</h3>
+            <form id="formEditar" onsubmit="salvarEdicao(event)">
+                <input type="hidden" id="editarId">
+                <input type="hidden" id="editarMedicoId">
+                <input type="hidden" id="editarPacienteId">
+
+                <label>Descrição:</label>
+                <input type="text" id="editarDescricao"><br><br>
+                <label>Data:</label>
+                <input type="date" id="editarData"><br><br>
+                <label>Hora:</label>
+                <input type="time" id="editarHora"><br><br>
+                <button type="submit">Salvar</button>
+            </form>
+        </div>
+    </div>
+
+    <button onclick="abrirModalAdd()" class="btnAdd">Adicionar Consulta</button>
+
+    <img src="./imgs/peach and goma.png" alt="Você me encontrou" class="steregue">
+
+    <div id="modalAdicionar" class="modal hidden">
+        <div class="modal-content">
+            <span class="close" onclick="fecharModalAdd()">&times;</span>
+            <h3>Nova Consulta</h3>
+            <form id="formAdicionar" onsubmit="salvarNovaCon(event)">
+                <label>Descrição:</label>
+                <input type="text" id="novaDescricao" required><br><br>
+
+                <label>Data:</label>
+                <input type="date" id="novaData" required><br><br>
+
+                <label>Hora:</label>
+                <input type="time" id="novaHora" required><br><br>
+
+                <label>ID do Médico:</label>
+                <input type="number" id="novaMedicoId" required><br><br>
+
+                <label>ID do Paciente:</label>
+                <input type="number" id="novaPacienteId" required><br><br>
+
+                <button type="submit">Salvar</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="./js/style.js"></script>
+</body>
+
+</html>

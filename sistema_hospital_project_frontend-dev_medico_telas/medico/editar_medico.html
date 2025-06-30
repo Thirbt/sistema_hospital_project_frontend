@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Editar Médico</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="editar-medico">
+
+  <h1>Editar Médico</h1>
+
+  <nav class="menu">
+    <a href="../index.html" class="active">Home</a>
+    <a href="cadastrar_medico.html">Cadastrar</a>
+    <a href="listar_medico.html">Listar</a>
+    <a href="excluir_medico.html">Excluir</a>
+  </nav>
+
+  <div class="search-section">
+    <input type="text" id="nomeBusca" placeholder="Digite o nome do médico a editar" autocomplete="off" />
+    <button onclick="buscarMedico()">Buscar</button>
+  </div>
+
+  <div id="listaResultados" class="lista-medicos hidden"></div>
+
+  <form id="formEditar" class="form-edit hidden">
+    <input type="hidden" id="idMedico" />
+
+    <label for="nome">Nome:</label>
+    <input type="text" id="nome" name="nome" required maxlength="50" />
+
+    <label for="crm">CRM (letras e números, até 8 caracteres):</label>
+    <input type="text" id="crm" name="crm" required maxlength="8" title="Informe até 8 caracteres" />
+
+    <label for="especialidade">Especialidade:</label>
+    <input type="text" id="especialidade" name="especialidade" required maxlength="50" />
+
+    <div class="form-buttons">
+      <button type="submit">Salvar Alterações</button>
+      <button type="button" class="btn-cancelar" onclick="cancelarEdicao()">Cancelar Edição</button>
+    </div>
+  </form>
+
+  <div id="msgSucesso" class="info-message"></div>
+
+  <script>
+    const API_BASE = 'https://system-hospital-project.onrender.com/medicos';
+    let medicos = [];
+
+    function validarTextoSeguro(texto) {
+      const regex = /^[A-Za-zÀ-ú .'-]{1,50}$/;
+      if (!regex.test(texto)) return false;
+      if (/[<>&"\/]/.test(texto)) return false;
+      return true;
+    }
+
+    function mostrarMensagem(msg, tipo = 'info') {
+      const msgSucesso = document.getElementById('msgSucesso');
+      msgSucesso.textContent = msg;
+      msgSucesso.className = 'info-message';
+
+      if (tipo === 'success') {
+        msgSucesso.style.backgroundColor = '#d4f8e8';
+        msgSucesso.style.color = '#007f5f';
+      } else if (tipo === 'error') {
+        msgSucesso.style.backgroundColor = '#f8d7da';
+        msgSucesso.style.color = '#842029';
+      } else {
+        msgSucesso.style.backgroundColor = '#caf0f8';
+        msgSucesso.style.color = '#03045e';
+      }
+
+      msgSucesso.style.display = 'block';
+
+      setTimeout(() => {
+        msgSucesso.style.display = 'none';
+      }, 3000);
+    }
+
+    function limparMensagem() {
+      const msgSucesso = document.getElementById('msgSucesso');
+      msgSucesso.style.display = 'none';
+      msgSucesso.textContent = '';
+    }
+
+    async function buscarMedico() {
+      const nomeBusca = document.getElementById('nomeBusca').value.trim().toLowerCase();
+      const form = document.getElementById('formEditar');
+      const lista = document.getElementById('listaResultados');
+
+      form.classList.add('hidden');
+      lista.classList.add('hidden');
+      lista.innerHTML = '';
+
+      if (!nomeBusca) {
+        mostrarMensagem('Digite um nome para buscar.', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/findAll`);
+        if (!res.ok) throw new Error('Erro ao buscar médicos');
+        medicos = await res.json();
+
+        const encontrados = medicos.filter(m => m.nome.toLowerCase().includes(nomeBusca));
+
+        if (encontrados.length === 0) {
+          mostrarMensagem('Nenhum médico encontrado.', 'info');
+          return;
+        }
+
+        if (encontrados.length === 1) {
+          preencherFormulario(encontrados[0]);
+        } else {
+          lista.innerHTML = encontrados.map(m => `
+            <div class="medico-item" tabindex="0" onclick="selecionarMedico(${m.id})" style="cursor:pointer;">
+              <p><strong>Nome:</strong> ${m.nome}</p>
+              <p><strong>Especialidade:</strong> ${m.especialidade}</p>
+            </div>
+          `).join('');
+          lista.classList.remove('hidden');
+        }
+      } catch (err) {
+        mostrarMensagem('Erro ao buscar médicos.', 'error');
+        console.error(err);
+      }
+    }
+
+    function preencherFormulario(m) {
+      document.getElementById('idMedico').value = m.id;
+      document.getElementById('nome').value = m.nome;
+      document.getElementById('crm').value = m.crm;
+      document.getElementById('especialidade').value = m.especialidade;
+      document.getElementById('formEditar').classList.remove('hidden');
+      document.getElementById('listaResultados').classList.add('hidden');
+      limparMensagem();
+    }
+
+    function selecionarMedico(id) {
+      const m = medicos.find(x => x.id === id);
+      if (m) preencherFormulario(m);
+    }
+
+    function cancelarEdicao() {
+      document.getElementById('formEditar').classList.add('hidden');
+      document.getElementById('listaResultados').classList.add('hidden');
+      limparMensagem();
+    }
+
+    document.getElementById('formEditar').addEventListener('submit', async e => {
+      e.preventDefault();
+
+      const id = document.getElementById('idMedico').value;
+      const nome = document.getElementById('nome').value.trim();
+      const crm = document.getElementById('crm').value.trim();
+      const esp = document.getElementById('especialidade').value.trim();
+
+      if (!validarTextoSeguro(nome)) {
+        mostrarMensagem('Nome inválido. Use apenas letras, pontos, espaços, hífen e apóstrofo.', 'error');
+        return;
+      }
+
+      if (!/^[A-Za-z0-9]{1,8}$/.test(crm)) {
+        mostrarMensagem('CRM deve conter até 8 caracteres, apenas letras e números.', 'error');
+        return;
+      }
+
+      if (!validarTextoSeguro(esp)) {
+        mostrarMensagem('Especialidade inválida. Use apenas letras, pontos, espaços, hífen e apóstrofo.', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/update/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome, crm, especialidade: esp }),
+        });
+
+        const r = await res.json();
+        mostrarMensagem(r.message || 'Médico atualizado com sucesso!', res.ok ? 'success' : 'error');
+
+        if (res.ok) {
+          document.getElementById('formEditar').reset();
+          document.getElementById('formEditar').classList.add('hidden');
+        }
+      } catch (err) {
+        mostrarMensagem('Erro ao salvar alterações.', 'error');
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>
