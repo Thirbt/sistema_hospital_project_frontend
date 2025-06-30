@@ -176,3 +176,38 @@ button[type="submit"] {
 button[type="submit"]:hover {
   background-color: #00B4D8;
 }
+
+/* ============================================= */
+/* ESTILOS PARA O MENU SUPERIOR AZUL             */
+/* ============================================= */
+
+/* A barra principal que envolve o menu */
+.menu-principal-azul {
+    background-color: #0077b6; /* O nosso tom de azul principal */
+    padding: 10px 20px;        /* Espaçamento interno (vertical e horizontal) */
+    text-align: center;        /* Centraliza os links dentro da barra */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* Uma sombra sutil para dar profundidade */
+}
+
+/* Os links dentro do menu */
+.menu-principal-azul a {
+    color: white;              /* Cor do texto dos links */
+    text-decoration: none;     /* Remove o sublinhado padrão */
+    font-size: 1.1em;          /* Tamanho da fonte */
+    font-weight: 500;          /* Deixa a fonte um pouco mais forte */
+    margin: 0 15px;            /* Espaçamento entre os links */
+    padding: 8px 12px;         /* Espaçamento interno para criar uma área de clique maior */
+    border-radius: 8px;        /* Bordas levemente arredondadas */
+    transition: background-color 0.3s ease; /* Efeito suave ao passar o mouse */
+}
+
+/* Efeito ao passar o mouse sobre um link */
+.menu-principal-azul a:hover {
+    background-color: #005a8d; /* Tom de azul mais escuro para destaque */
+}
+
+/* Estilo para o link da página atual (opcional) */
+.menu-principal-azul a.active {
+    background-color: #005a8d; /* Deixa o botão da página ativa já destacado */
+    font-weight: bold;
+}
